@@ -39,7 +39,7 @@ void cxxinit_(int* index, int* id1, float* x1, float* y1, float* z1, float* t1, 
 void cxxnfinal_(int *np)
 {
  for(int ip=gen::npart[ievcasc]; ip<*np; ip++)
- gen::pList[ievcasc][ip] = new Particle(0.,0.,0.,0., 0.,0.,0.,0., (ParticlePDG2*)0x0,0) ;
+ gen::pList[ievcasc][ip] = new Particle(0.,0.,0.,0., 0.,0.,0.,0.,0.,0.,0.,0., (ParticlePDG2*)0x0,0) ;
  gen::npart[ievcasc] = *np ;
 //! std::cout << "cxx : created " << *np << " final particles\n" ;
 }
@@ -210,7 +210,7 @@ M1:  Double_t initialMass = BreitWigner(initialMass0,pDef->GetWidth(), random3);
   if(nSec == 1) {
     nprod = 1 ;
     out = new Particle* [1] ;
-    out[0] = new Particle(in->x, in->y, in->z, in->t, in->px, in->py, in->pz, E1, pDef, pDef->GetPDG()) ;
+    out[0] = new Particle(in->x, in->y, in->z, in->t, in->px, in->py, in->pz, E1, in->Temp, in->mub, in->muq, in->mus, pDef, pDef->GetPDG()) ;
     cout<<"Warning: 1-particle decay!, pid= "<<pDef->GetPDG()<<endl ;
     return;
     //store information about mother
@@ -236,8 +236,8 @@ M1:  Double_t initialMass = BreitWigner(initialMass0,pDef->GetWidth(), random3);
     p2mom.Boost(velocity);
     
     out = new Particle* [2] ;
-    out[0] = new Particle(in->x, in->y, in->z, in->t, p1mom.Px(), p1mom.Py(), p1mom.Pz(), p1mom.E(), daughter1, pDef->GetPDG()) ;
-    out[1] = new Particle(in->x, in->y, in->z, in->t, p2mom.Px(), p2mom.Py(), p2mom.Pz(), p2mom.E(), daughter2, pDef->GetPDG()) ;
+    out[0] = new Particle(in->x, in->y, in->z, in->t, p1mom.Px(), p1mom.Py(), p1mom.Pz(), p1mom.E(), in->Temp, in->mub, in->muq, in->mus, daughter1, pDef->GetPDG()) ;
+    out[1] = new Particle(in->x, in->y, in->z, in->t, p2mom.Px(), p2mom.Py(), p2mom.Pz(), p2mom.E(), in->Temp, in->mub, in->muq, in->mus, daughter2, pDef->GetPDG()) ;
 
     double delta = TMath::Sqrt(
     (parentMom.X()-p1mom.X()-p2mom.X())*(parentMom.X()-p1mom.X()-p2mom.X())+
@@ -390,9 +390,9 @@ M1:  Double_t initialMass = BreitWigner(initialMass0,pDef->GetWidth(), random3);
     }
 
     out = new Particle* [3] ;
-    out[0] = new Particle(in->x, in->y, in->z, in->t, mom1.Px(), mom1.Py(), mom1.Pz(), mom1.E(), daughter1, pDef->GetPDG()) ;
-    out[1] = new Particle(in->x, in->y, in->z, in->t, mom2.Px(), mom2.Py(), mom2.Pz(), mom2.E(), daughter2, pDef->GetPDG()) ;
-    out[2] = new Particle(in->x, in->y, in->z, in->t, mom3.Px(), mom3.Py(), mom3.Pz(), mom3.E(), daughter3, pDef->GetPDG()) ;
+    out[0] = new Particle(in->x, in->y, in->z, in->t, mom1.Px(), mom1.Py(), mom1.Pz(), mom1.E(), in->Temp, in->mub, in->muq, in->mus, daughter1, pDef->GetPDG()) ;
+    out[1] = new Particle(in->x, in->y, in->z, in->t, mom2.Px(), mom2.Py(), mom2.Pz(), mom2.E(), in->Temp, in->mub, in->muq, in->mus, daughter2, pDef->GetPDG()) ;
+    out[2] = new Particle(in->x, in->y, in->z, in->t, mom3.Px(), mom3.Py(), mom3.Pz(), mom3.E(), in->Temp, in->mub, in->muq, in->mus, daughter3, pDef->GetPDG()) ;
 
     return;
   }

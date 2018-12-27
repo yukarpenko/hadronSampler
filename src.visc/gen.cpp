@@ -196,7 +196,7 @@ void load(char *filename, int N)
 }
 
 
-void acceptParticle(int event, ParticlePDG2 *ldef, double lx, double ly, double lz, double lt, double lpx, double lpy, double lpz, double lE) ;
+void acceptParticle(int event, ParticlePDG2 *ldef, double lx, double ly, double lz, double lt, double lpx, double lpy, double lpz, double lE, double lTemp, double lmub, double lmuq, double lmus) ;
 
 
 double ffthermal(double *x, double *par)
@@ -299,7 +299,8 @@ int generate()
    const double vz = tanh(etaF+etaShift) ;
    mom.Boost(vx,vy,vz) ;
    acceptParticle(ievent,part, surf[iel].x, surf[iel].y, surf[iel].tau*sinh(surf[iel].eta+etaShift),
-     surf[iel].tau*cosh(surf[iel].eta+etaShift), mom.Px(), mom.Py(), mom.Pz(), mom.E()) ;
+     surf[iel].tau*cosh(surf[iel].eta+etaShift), mom.Px(), mom.Py(), mom.Pz(), mom.E(),
+     surf[iel].T, surf[iel].mub, surf[iel].muq, surf[iel].mus) ;
   } // coordinate accepted
   } // events loop
   if(iel%(Nelem/50)==0) cout<<(iel*100)/Nelem<<" percents done, maxiter= "<<nmaxiter<<endl ;
@@ -311,7 +312,8 @@ int generate()
 
 
 
-void acceptParticle(int ievent, ParticlePDG2 *ldef, double lx, double ly, double lz, double lt, double lpx, double lpy, double lpz, double lE)
+void acceptParticle(int ievent, ParticlePDG2 *ldef, double lx, double ly, double lz, double lt, double lpx, double lpy, double lpz, double lE, double lTemp, double lmub,
+double lmuq, double lmus)
 {
  int& npart1 = npart[ievent] ;
  int urqmdid, urqmdiso3 ;
@@ -319,7 +321,7 @@ void acceptParticle(int ievent, ParticlePDG2 *ldef, double lx, double ly, double
  pdg2id_(&urqmdid, &urqmdiso3, &lid) ;
  if(geteposcode_(&lid)!=0 && abs(urqmdid)<1000){  // particle known to UrQMD
 // if(true){ // TEST!! for thermal mult's
-    pList[ievent][npart1] = new Particle(lx,ly,lz,lt,lpx,lpy,lpz,lE, ldef, 0) ;
+    pList[ievent][npart1] = new Particle(lx,ly,lz,lt,lpx,lpy,lpz,lE,lTemp,lmub,lmuq,lmus, ldef, 0) ;
    npart1++ ;
    if(isinf(lE) || isnan(lE)){
      cout << "acceptPart nan: known, coord="<<lx<<" "<<ly<<" "<<lz<<" "<<lt<<endl ;
@@ -329,7 +331,7 @@ void acceptParticle(int ievent, ParticlePDG2 *ldef, double lx, double ly, double
 //  cout << "------ unstable particle decay (Cooper-Frye isotherm) " << lid << endl ;
 //  cout << setw(14) << "px" << setw(14) << "py" << setw(14) << "pz" << setw(14) << "E" << endl ;
 //  cout << setw(14) << mom[0] << setw(14) << mom[1] << setw(14) << mom[2] << setw(14) << mom[3] << endl ;
-  Particle* resonance = new Particle(lx,ly,lz,lt,lpx,lpy,lpz,lE, ldef, 0) ;
+  Particle* resonance = new Particle(lx,ly,lz,lt,lpx,lpy,lpz,lE,lTemp,lmub,lmuq,lmus, ldef, 0) ;
   int nprod ;
   Particle** daughters ;
   decay(resonance, nprod, daughters) ;

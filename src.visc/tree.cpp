@@ -15,6 +15,10 @@ MyTree::MyTree(char *name)
   Py = new Float_t [gen::NPartBuf] ;
   Pz = new Float_t [gen::NPartBuf] ;
   E  = new Float_t [gen::NPartBuf] ;
+  Temp  = new Float_t [gen::NPartBuf] ;
+  mub  = new Float_t [gen::NPartBuf] ;
+  muq  = new Float_t [gen::NPartBuf] ;
+  mus  = new Float_t [gen::NPartBuf] ;
   Id   = new Int_t [gen::NPartBuf] ;
   MId  = new Int_t [gen::NPartBuf] ;
   LastColl  = new Int_t [gen::NPartBuf] ;
@@ -34,6 +38,10 @@ MyTree::MyTree(char *name)
   tree->Branch("py",&Py[0],"py[npart]/F");
   tree->Branch("pz",&Pz[0],"pz[npart]/F");
   tree->Branch("E",&E[0],"E[npart]/F");
+  tree->Branch("Temp",&Temp[0],"Temp[npart]/F");
+  tree->Branch("mub",&mub[0],"mub[npart]/F");
+  tree->Branch("muq",&muq[0],"muq[npart]/F");
+  tree->Branch("mus",&mus[0],"mus[npart]/F");
   tree->Branch("id",&Id[0],"id[npart]/I");
   tree->Branch("mid",&MId[0],"mid[npart]/I");
   tree->Branch("lastcoll",&LastColl[0],"lastcoll[npart]/I");
@@ -58,6 +66,10 @@ void MyTree::fill(int iev)
   Py[nfill] = gen::pList[iev][ipart]->py ;
   Pz[nfill] = gen::pList[iev][ipart]->pz ;
    E[nfill] = gen::pList[iev][ipart]->e ;
+   Temp[nfill] = gen::pList[iev][ipart]->Temp ;
+   mub[nfill] = gen::pList[iev][ipart]->mub ;
+   muq[nfill] = gen::pList[iev][ipart]->muq ;
+   mus[nfill] = gen::pList[iev][ipart]->mus ;
   Id[nfill] = gen::pList[iev][ipart]->def->GetPDG() ;
  MId[nfill] = gen::pList[iev][ipart]->mid ;
  LastColl[nfill] = gen::pList[iev][ipart]->lastcoll ;
