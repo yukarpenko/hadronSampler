@@ -8,7 +8,7 @@
 
 using namespace std ;
 
-namespace params{
+namespace HSparams{
 
 char sSurface [255], sSpectraDir [255], sMultDir [255] ;
 bool bEventGeneration ;

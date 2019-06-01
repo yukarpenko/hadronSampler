@@ -106,11 +106,11 @@ void load(char *filename, int N)
  Nelem = N ;
  surf = new element [Nelem] ;
 
- pList = new Particle** [params::NEVENTS] ;
- for(int i=0; i<params::NEVENTS; i++){
+ pList = new Particle** [HSparams::NEVENTS] ;
+ for(int i=0; i<HSparams::NEVENTS; i++){
    pList[i] = new Particle* [NPartBuf] ;
  }
- npart = new int [params::NEVENTS] ;
+ npart = new int [HSparams::NEVENTS] ;
 
  cout<<"reading "<<N<<" lines from  "<<filename<<"\n" ;
  ifstream fin(filename) ;
@@ -167,7 +167,7 @@ void load(char *filename, int N)
    // ########################
    // pi^{mu nu} boost to fluid rest frame
    // ########################
-   if(params::shear){
+   if(HSparams::shear){
    double _pi[10], boostMatrix[4][4] ;
    fillBoostMatrix(-surf[n].u[1]/surf[n].u[0],-surf[n].u[2]/surf[n].u[0],-surf[n].u[3]/surf[n].u[0], boostMatrix) ;
    for(int i=0; i<4; i++)
@@ -180,7 +180,7 @@ void load(char *filename, int N)
    for(int i=0; i<10; i++) surf[n].pi[i] = _pi[i] ;
    } // end pi boost
  }
- if(params::shear) dsigmaMax *= 2.0 ; // *2.0: jun17. default: *1.5
+ if(HSparams::shear) dsigmaMax *= 2.0 ; // *2.0: jun17. default: *1.5
  else dsigmaMax *= 1.3 ;
 
  cout<<"..done.\n" ;
@@ -214,7 +214,7 @@ int generate()
  const double gmumu [4] = {1., -1., -1., -1.} ;
  TF1 *fthermal = new TF1("fthermal",ffthermal,0.0,10.0,4) ;
  TLorentzVector mom ;
- for(int iev=0; iev<params::NEVENTS; iev++) npart[iev] = 0 ;
+ for(int iev=0; iev<HSparams::NEVENTS; iev++) npart[iev] = 0 ;
  int nmaxiter = 0 ;
  int ntherm_fail=0 ;
 
@@ -243,7 +243,7 @@ int generate()
   double rval, dvEff = 0., W ;
   // dvEff = dsigma_mu * u^mu
   dvEff = surf[iel].dsigma[0] ;
-  for(int ievent=0; ievent<params::NEVENTS; ievent++){
+  for(int ievent=0; ievent<HSparams::NEVENTS; ievent++){
   // ---- number of particles to generate
   int nToGen = 0 ;
   if(dvEff*totalDensity<0.01){
@@ -275,14 +275,14 @@ int generate()
    W = ( surf[iel].dsigma[0]*mom.E() + surf[iel].dsigma[1]*mom.Px() +
         surf[iel].dsigma[2]*mom.Py() + surf[iel].dsigma[3]*mom.Pz() ) / mom.E() ;
    double WviscFactor = 1.0 ;
-   if(params::shear){
+   if(HSparams::shear){
     const double feq = C_Feq/( exp((sqrt(p*p+mass*mass)-muf)/surf[iel].T) - stat ) ;
     double pipp = 0 ;
     double momArray [4] = {mom[3],mom[0],mom[1],mom[2]} ;
     for(int i=0; i<4; i++)
     for(int j=0; j<4; j++)
      pipp += momArray[i]*momArray[j]*gmumu[i]*gmumu[j]*surf[iel].pi[index44(i,j)] ;
-    WviscFactor = (1.0 + (1.0+stat*feq)*pipp/(2.*surf[iel].T*surf[iel].T*(params::ecrit*1.15))) ;
+    WviscFactor = (1.0 + (1.0+stat*feq)*pipp/(2.*surf[iel].T*surf[iel].T*(HSparams::ecrit*1.15))) ;
     if(WviscFactor<0.1) WviscFactor = 0.1 ; // test, jul17; before: 0.5
     //if(WviscFactor>1.2) WviscFactor = 1.2 ; //              before: 1.5
    }
@@ -293,7 +293,7 @@ int generate()
    if(niter>nmaxiter) nmaxiter = niter ;
    // additional random smearing over eta
    const double etaF = 0.5*log((surf[iel].u[0]+surf[iel].u[3])/(surf[iel].u[0]-surf[iel].u[3])) ;
-   const double etaShift = params::deta*(-0.5+rnd->Rndm()) ;
+   const double etaShift = HSparams::deta*(-0.5+rnd->Rndm()) ;
    const double vx = surf[iel].u[1]/surf[iel].u[0]*cosh(etaF)/cosh(etaF+etaShift) ;
    const double vy = surf[iel].u[2]/surf[iel].u[0]*cosh(etaF)/cosh(etaF+etaShift) ;
    const double vz = tanh(etaF+etaShift) ;
@@ -332,7 +332,7 @@ void acceptParticle(int ievent, ParticlePDG2 *ldef, double lx, double ly, double
   Particle* resonance = new Particle(lx,ly,lz,lt,lpx,lpy,lpz,lE, ldef, 0) ;
   int nprod ;
   Particle** daughters ;
-  decay(resonance, nprod, daughters) ;
+  resonanceDecay(resonance, nprod, daughters) ;
   for(int iprod=0; iprod<nprod; iprod++){ // add decay products to UrQMD input
   int daughterId = daughters[iprod]->def->GetPDG() ;
     pdg2id_(&urqmdid, &urqmdiso3, &daughterId) ;
