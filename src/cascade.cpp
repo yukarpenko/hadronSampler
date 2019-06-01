@@ -66,7 +66,7 @@ void cxxfinal_(int* index, int* id1, float* x1, float* y1, float* z1, float* t1,
 
 namespace gen{
 
-using params::rescatter ;
+using HSparams::rescatter ;
 extern DatabasePDG2 *database ;
 
 
@@ -95,7 +95,7 @@ for(int iiter=0; iiter<3; iiter++){
 #endif
   int nprod ;
   Particle** daughters ;
-  decay(p, nprod, daughters) ;
+  resonanceDecay(p, nprod, daughters) ;
 #ifdef DEBUG2
   cout << "decay into : " ; for(int iprod=0; iprod<nprod; iprod++) cout << "  " << ppid[iprod] ;
   cout << endl ;
@@ -132,7 +132,7 @@ double BreitWigner(double mean, double gamma, TRandom* random)
 }
 
 
-void decay(Particle *in, int& nprod, Particle** &out){
+void resonanceDecay(Particle *in, int& nprod, Particle** &out){
   DatabasePDG2 *database = gen::database ;
   ParticlePDG2* pDef = in->def ;
   TRandom3 *random3 = gen::rnd ;

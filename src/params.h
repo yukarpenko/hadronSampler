@@ -1,5 +1,5 @@
 
-namespace params{
+namespace HSparams{
 extern char sSurface [255], sSpectraDir [255], sMultDir [255] ;
 extern bool bEventGeneration ;
 extern bool weakContribution ;

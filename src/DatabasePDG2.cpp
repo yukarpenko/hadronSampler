@@ -22,7 +22,7 @@ using std::ofstream;
 using std::strcpy;
 using std::strcat;
 
-using params::weakContribution ;
+using HSparams::weakContribution ;
 int rnegative ; // negative factorial argument flag - for Clebsch-Gordan coeff. calculation
 
 bool isStable(int pdg) ;

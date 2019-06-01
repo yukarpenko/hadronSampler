@@ -28,11 +28,11 @@ using namespace std ;
 int getNlines(char *filename) ;
 int readCommandLine(int argc, char** argv) ;
 
-using params::sSpectraDir ;
-using params::sMultDir ;
-using params::sSurface ;
-using params::NEVENTS ;
-using params::bEventGeneration ;
+using HSparams::sSpectraDir ;
+using HSparams::sMultDir ;
+using HSparams::sSurface ;
+using HSparams::NEVENTS ;
+using HSparams::bEventGeneration ;
 
 int ranseed ;
 
@@ -49,7 +49,7 @@ int main(int argc, char **argv)
 {
   // command-line parameters
   int prefix = readCommandLine(argc, argv) ;
-  params::printParameters() ;
+  HSparams::printParameters() ;
   time_t time0 ;
   time(&time0) ;
   ranseed = time0+prefix*16 ;
@@ -126,14 +126,14 @@ int readCommandLine(int argc, char** argv)
 	  bEventGeneration = 1 ;
 	  prefix = atoi(argv[2]) ;
 	  cout << "events mode, prefix = " << prefix << endl ;
-	  params::readParams(argv[3]) ;
+	  HSparams::readParams(argv[3]) ;
     }else if(strcmp(argv[1],"fmax")==0){
 	  if((int)argv[2][0]<58){
 		prefix = atoi(argv[2]) ;
 		cout << "fmax mode, prefix = " << prefix << endl ;
-		params::readParams(argv[3]) ;
+		HSparams::readParams(argv[3]) ;
 	  }else
-	  params::readParams(argv[2]) ;
+	  HSparams::readParams(argv[2]) ;
 	}else{cout << "unknown command-line switch: " << argv[1] << endl ; exit(1) ;}
 	return prefix ;
 }
