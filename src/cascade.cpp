@@ -74,8 +74,6 @@ extern DatabasePDG2 *database ;
 void urqmd(int iev)
 {
  ievcasc = iev ;
- if(rescatter) // involve UrQMD
- urqmdmain_() ;
  // no rescattering - just pass particle arrays ass they are
 //===== decay of unstable resonances ========
 for(int iiter=0; iiter<3; iiter++){

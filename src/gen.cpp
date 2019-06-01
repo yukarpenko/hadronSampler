@@ -20,6 +20,7 @@
 #include "params.h"
 #include "particle.h"
 #include "const.h"
+#include "../src/cll.h"   // to import index44()
 
 using namespace std ;
 
@@ -55,14 +56,6 @@ void fillBoostMatrix(double vx, double vy, double vz, double boostMatrix [4][4])
    boostMatrix[i][j] = 0.0 ;
   }
   for(int i=1; i<4; i++) boostMatrix[i][i] += 1.0 ;
-}
-
-
-// index44: returns an index of pi^{mu nu} mu,nu component in a plain 1D array
-int index44(const int &i, const int &j){
-  if(i>3 || j>3 || i<0 || j<0) {std::cout<<"index44: i j " <<i<<" "<<j<<endl ; exit(1) ; }
-  if(j<i) return (i*(i+1))/2 + j ;
-  else return (j*(j+1))/2 + i ;
 }
 
 
@@ -314,38 +307,12 @@ int generate()
 void acceptParticle(int ievent, ParticlePDG2 *ldef, double lx, double ly, double lz, double lt, double lpx, double lpy, double lpz, double lE)
 {
  int& npart1 = npart[ievent] ;
- int urqmdid, urqmdiso3 ;
  int lid = ldef->GetPDG() ;
- pdg2id_(&urqmdid, &urqmdiso3, &lid) ;
- if(geteposcode_(&lid)!=0 && abs(urqmdid)<1000){  // particle known to UrQMD
-// if(true){ // TEST!! for thermal mult's
-    pList[ievent][npart1] = new Particle(lx,ly,lz,lt,lpx,lpy,lpz,lE, ldef, 0) ;
-   npart1++ ;
-   if(isinf(lE) || isnan(lE)){
-     cout << "acceptPart nan: known, coord="<<lx<<" "<<ly<<" "<<lz<<" "<<lt<<endl ;
-     exit(1) ;
-   }
- }else{ // decay particles unknown to UrQMD
-//  cout << "------ unstable particle decay (Cooper-Frye isotherm) " << lid << endl ;
-//  cout << setw(14) << "px" << setw(14) << "py" << setw(14) << "pz" << setw(14) << "E" << endl ;
-//  cout << setw(14) << mom[0] << setw(14) << mom[1] << setw(14) << mom[2] << setw(14) << mom[3] << endl ;
-  Particle* resonance = new Particle(lx,ly,lz,lt,lpx,lpy,lpz,lE, ldef, 0) ;
-  int nprod ;
-  Particle** daughters ;
-  resonanceDecay(resonance, nprod, daughters) ;
-  for(int iprod=0; iprod<nprod; iprod++){ // add decay products to UrQMD input
-  int daughterId = daughters[iprod]->def->GetPDG() ;
-    pdg2id_(&urqmdid, &urqmdiso3, &daughterId) ;
-    if(geteposcode_(&daughterId)!=0 && abs(urqmdid)<1000){  // particle known to UrQMD
-    pList[ievent][npart1] = daughters[iprod] ;
-    if(isinf(daughters[iprod]->e) || isnan(daughters[iprod]->e)){
-      cout << "acceptPart nan: unknown, mid="<<daughters[iprod]->mid<<endl ;
-      exit(1) ;
-    }
-    npart1++ ;
-  }}
-  delete resonance ;
-  if(nprod>0) delete [] daughters ;
+ pList[ievent][npart1] = new Particle(lx,ly,lz,lt,lpx,lpy,lpz,lE, ldef, 0) ;
+ npart1++ ;
+ if(isinf(lE) || isnan(lE)){
+  cout << "acceptPart nan: known, coord="<<lx<<" "<<ly<<" "<<lz<<" "<<lt<<endl ;
+  exit(1) ;
  }
  if(npart1>NPartBuf){ cout<<"Error. Please increase gen::npartbuf\n"; exit(1);}
 }
