@@ -8,11 +8,12 @@
 #include <cmath>
 #include <iomanip>
 #include <cstdlib>
-#include <cmath>
+#include <ctime>
 #include <iostream>
 #include <fstream>
 #include <sstream>
 #include <TF1.h>
+#include <TFile.h>
 
 #include "DatabasePDG2.h"
 #include "gen.h"
@@ -20,6 +21,7 @@
 #include "params.h"
 #include "particle.h"
 #include "const.h"
+#include "tree.h"
 #include "../src/cll.h"   // to import index44()
 
 using namespace std ;
@@ -41,7 +43,7 @@ void fillBoostMatrix(double vx, double vy, double vz, double boostMatrix [4][4])
   const double vv [3] = {vx, vy, vz} ;
   const double v2 = vx*vx+vy*vy+vz*vz ;
   const double gamma = 1.0/sqrt(1.0-v2) ;
-  if(isinf(gamma)||isnan(gamma)){ cout<<"boost vector invalid; exiting\n" ; exit(1) ; }
+  if(std::isinf(gamma)||std::isnan(gamma)){ cout<<"boost vector invalid; exiting\n" ; exit(1) ; }
   boostMatrix[0][0] = gamma ;
   boostMatrix[0][1] = boostMatrix[1][0] = vx*gamma ;
   boostMatrix[0][2] = boostMatrix[2][0] = vy*gamma ;
@@ -61,8 +63,6 @@ void fillBoostMatrix(double vx, double vy, double vz, double boostMatrix [4][4])
 
 namespace gen{
 
-
-int Nelem ;
 double *ntherm, dvMax, dsigmaMax ;
 TRandom3 *rnd ;
 DatabasePDG2 *database ;
@@ -70,16 +70,7 @@ int NPART ;
 //const int NPartBuf = 10000 ;
 Particle ***pList ; // particle arrays
 
-struct element {
- double tau, x, y, eta ;
- double u[4] ;
- double dsigma[4] ;
- double T, mub, muq, mus ;
- double pi[10] ;
- double Pi ;
-} ;
-
-element *surf ;
+vector<element> surf ;
 int *npart ;               // number of generated particles in each event
 
 const double pmax = 10.0 ;
@@ -88,71 +79,67 @@ const double rapmax = 6.0 ;
 const double c1 = pow(1./2./hbarC/TMath::Pi(),3.0) ;
 double *cumulantDensity ; // particle densities (thermal). Seems to be redundant, but needed for fast generation
 double totalDensity ; // sum of all thermal densities
+double dV, vEff, vEffOld, dvEff, dvEffOld ;
+int nfail, ncut;
 
-
-// ######## load the elements
-void load(char *filename, int N)
+void init()
 {
- double dV, vEff=0.0, vEffOld=0.0, dvEff, dvEffOld ;
- int nfail=0, ncut=0 ;
- TLorentzVector dsigma ;
- Nelem = N ;
- surf = new element [Nelem] ;
-
+ vEff=0.0;
+ vEffOld=0.0;
+ nfail=0;
+ ncut=0;
+ dvMax=0. ;
+ dsigmaMax=0. ;  // needed for the generation
  pList = new Particle** [HSparams::NEVENTS] ;
  for(int i=0; i<HSparams::NEVENTS; i++){
    pList[i] = new Particle* [NPartBuf] ;
  }
  npart = new int [HSparams::NEVENTS] ;
+// ---- particle database init
+	database = new DatabasePDG2("Tb/ptl3.data","Tb/dky3.mar.data");
+	database->LoadData();
+//	database->SetMassRange(0.01, 10.0); //-------without PHOTONS
+//	database->SetWidthRange(0., 10.0);
+	database->SortParticlesByMass() ;
+	database->CorrectBranching() ;
+	database->DumpData() ;
+// ---- init for thermal densities calculation
+ NPART=database->GetNParticles() ;
+ cout<<"NhadronSpecies = "<<NPART<<endl ;
+ cumulantDensity = new double [NPART] ;
+// ---- random number generator init
+ rnd = new TRandom3();
+ time_t time0 ;
+ time(&time0) ;
+ int ranseed = 128884584; //time0 ; // TODO random seed from the input
+ rnd->SetSeed(ranseed);
+ cout<<"Random seed = "<<ranseed<<endl ;
+}
 
- cout<<"reading "<<N<<" lines from  "<<filename<<"\n" ;
- ifstream fin(filename) ;
- if(!fin){ cout << "cannot read file " << filename << endl ; exit(1) ; }
- dvMax=0. ;
- dsigmaMax=0. ;
- // ---- reading loop
- string line ;
- istringstream instream ;
- cout<<"1?: failbit="<<instream.fail()<<endl ;
- for(int n=0; n<Nelem; n++){
-   getline(fin, line) ;
-   instream.str(line) ;
-   instream.seekg(0) ;
-   instream.clear() ; // does not work with gcc 4.1 otherwise
-    instream>>surf[n].tau>>surf[n].x>>surf[n].y>>surf[n].eta
-      >>surf[n].dsigma[0]>>surf[n].dsigma[1]>>surf[n].dsigma[2]>>surf[n].dsigma[3]
-      >>surf[n].u[0]>>surf[n].u[1]>>surf[n].u[2]>>surf[n].u[3]
-      >>surf[n].T>>surf[n].mub>>surf[n].muq>>surf[n].mus ;
-      for(int i=0; i<10; i++) instream>>surf[n].pi[i] ;
-      instream>>surf[n].Pi ;
-      if(surf[n].muq>0.12){ surf[n].muq=0.12 ; // omit charge ch.pot. for test
-	ncut++ ;
-      }
-      if(surf[n].muq<-0.12){ surf[n].muq=-0.12 ; // omit charge ch.pot. for test
-	ncut++ ;
-      }
-
-   if(instream.fail()){ cout<<"reading failed at line "<<n<<"; exiting\n" ; exit(1) ; }
+// ######## load the elements
+void addElement(element elem)
+{
+ TLorentzVector dsigma ;
+   if(elem.muq>0.12)  elem.muq = 0.12;
+   if(elem.muq<-0.12) elem.muq = -0.12;
    // calculate in the old way
-   dvEffOld = surf[n].dsigma[0]*surf[n].u[0]+surf[n].dsigma[1]*surf[n].u[1]+
-   surf[n].dsigma[2]*surf[n].u[2]+surf[n].dsigma[3]*surf[n].u[3] ;
+   dvEffOld =elem.dsigma[0]*elem.u[0]+elem.dsigma[1]*elem.u[1]+
+   elem.dsigma[2]*elem.u[2]+elem.dsigma[3]*elem.u[3] ;
    vEffOld += dvEffOld ;
    if(dvEffOld<0.0){
-     //cout<<"!!! dvOld!=dV " << dvEffOld <<"  " << dV << "  " << surf[n].tau <<endl ;
      nfail++ ;
    }
-   //if(nfail==100) exit(1) ;
    // ---- boost
-   dsigma.SetXYZT(-surf[n].dsigma[1],-surf[n].dsigma[2],-surf[n].dsigma[3],surf[n].dsigma[0]) ;
-   dsigma.Boost(-surf[n].u[1]/surf[n].u[0],-surf[n].u[2]/surf[n].u[0],-surf[n].u[3]/surf[n].u[0]) ;
+   dsigma.SetXYZT(-elem.dsigma[1],-elem.dsigma[2],-elem.dsigma[3],elem.dsigma[0]) ;
+   dsigma.Boost(-elem.u[1]/elem.u[0],-elem.u[2]/elem.u[0],-elem.u[3]/elem.u[0]) ;
    // ######################################################################
    // ###  now and later surf.dsigma are boosted to the fluid rest frame  ##
    // ######################################################################
-   surf[n].dsigma[0] = dsigma.T() ;
-   surf[n].dsigma[1] = -dsigma.X() ;
-   surf[n].dsigma[2] = -dsigma.Y() ;
-   surf[n].dsigma[3] = -dsigma.Z() ;
-   dvEff = surf[n].dsigma[0] ;
+   elem.dsigma[0] = dsigma.T() ;
+   elem.dsigma[1] = -dsigma.X() ;
+   elem.dsigma[2] = -dsigma.Y() ;
+   elem.dsigma[3] = -dsigma.Z() ;
+   dvEff = elem.dsigma[0] ;
    vEff += dvEff ;
    if(dvMax<dvEff) dvMax = dvEff ;
    // maximal value of the weight max(W) = max(dsigma_0+|\vec dsigma_i|)   for equilibrium DFs
@@ -162,30 +149,18 @@ void load(char *filename, int N)
    // ########################
    if(HSparams::shear){
    double _pi[10], boostMatrix[4][4] ;
-   fillBoostMatrix(-surf[n].u[1]/surf[n].u[0],-surf[n].u[2]/surf[n].u[0],-surf[n].u[3]/surf[n].u[0], boostMatrix) ;
+   fillBoostMatrix(-elem.u[1]/elem.u[0],-elem.u[2]/elem.u[0],-elem.u[3]/elem.u[0], boostMatrix) ;
    for(int i=0; i<4; i++)
    for(int j=i; j<4; j++){
      _pi[index44(i,j)] = 0.0 ;
      for(int k=0; k<4; k++)
      for(int l=0; l<4; l++)
-      _pi[index44(i,j)] += surf[n].pi[index44(k,l)]*boostMatrix[i][k]*boostMatrix[j][l] ;
+      _pi[index44(i,j)] += elem.pi[index44(k,l)]*boostMatrix[i][k]*boostMatrix[j][l] ;
    }
-   for(int i=0; i<10; i++) surf[n].pi[i] = _pi[i] ;
+   for(int i=0; i<10; i++) elem.pi[i] = _pi[i] ;
    } // end pi boost
- }
- if(HSparams::shear) dsigmaMax *= 2.0 ; // *2.0: jun17. default: *1.5
- else dsigmaMax *= 1.3 ;
-
- cout<<"..done.\n" ;
- cout<<"Veff = "<<vEff<<"  dvMax = "<<dvMax<<endl ;
- cout<<"Veff(old) = "<<vEffOld<<endl ;
- cout<<"failed elements = "<<nfail<<endl ;
- cout<<"mu_cut elements = "<<ncut<<endl ;
-// ---- prepare some stuff to calculate thermal densities
- NPART=database->GetNParticles() ;
- cout<<"NPART="<<NPART<<endl ;
- cout<<"dsigmaMax="<<dsigmaMax<<endl ;
- cumulantDensity = new double [NPART] ;
+ // adding to the surface
+ surf.push_back(elem);
 }
 
 
@@ -204,6 +179,9 @@ double ffthermal(double *x, double *par)
 
 int generate()
 {
+ // lifting the dsigmaMax. Should be done only once!
+ if(HSparams::shear) dsigmaMax *= 2.0 ; // *2.0: jun17. default: *1.5
+ else dsigmaMax *= 1.3 ;
  const double gmumu [4] = {1., -1., -1., -1.} ;
  TF1 *fthermal = new TF1("fthermal",ffthermal,0.0,10.0,4) ;
  TLorentzVector mom ;
@@ -211,7 +189,7 @@ int generate()
  int nmaxiter = 0 ;
  int ntherm_fail=0 ;
 
- for(int iel=0; iel<Nelem; iel++){ // loop over all elements
+ for(int iel=0; iel<surf.size(); iel++){ // loop over all elements
   // ---> thermal densities, for each surface element
    totalDensity = 0.0 ;
    if(surf[iel].T<=0.){ ntherm_fail++ ; continue ; }
@@ -295,7 +273,7 @@ int generate()
      surf[iel].tau*cosh(surf[iel].eta+etaShift), mom.Px(), mom.Py(), mom.Pz(), mom.E()) ;
   } // coordinate accepted
   } // events loop
-  if(iel%(Nelem/50)==0) cout<<(iel*100)/Nelem<<" percents done, maxiter= "<<nmaxiter<<endl ;
+  if(iel%(surf.size()/50)==0) cout<<(iel*100)/surf.size()<<" percents done, maxiter= "<<nmaxiter<<endl ;
  } // loop over all elements
  cout << "therm_failed elements: " <<ntherm_fail << endl ;
  return npart[0] ;
@@ -310,12 +288,30 @@ void acceptParticle(int ievent, ParticlePDG2 *ldef, double lx, double ly, double
  int lid = ldef->GetPDG() ;
  pList[ievent][npart1] = new Particle(lx,ly,lz,lt,lpx,lpy,lpz,lE, ldef, 0) ;
  npart1++ ;
- if(isinf(lE) || isnan(lE)){
+ if(std::isinf(lE) || std::isnan(lE)){
   cout << "acceptPart nan: known, coord="<<lx<<" "<<ly<<" "<<lz<<" "<<lt<<endl ;
   exit(1) ;
  }
- if(npart1>NPartBuf){ cout<<"Error. Please increase gen::npartbuf\n"; exit(1);}
+ if(npart1>NPartBuf){
+  cout<<"Error. Please increase gen::npartbuf\n";
+  exit(1);
+ }
 }
 
-// ################### end #################
+
+void writeEvents()
+{
+ TFile *outputFile = new TFile("output.root", "RECREATE"); 
+ outputFile->cd();
+ MyTree *treeIni = new MyTree("treeini") ;
+ MyTree *treeFin = new MyTree("treefin") ;
+ for(int iev=0; iev<HSparams::NEVENTS; iev++){
+ treeIni->fill(iev) ;
+ gen::urqmd(iev) ;   // it only does resonance decays
+ treeFin->fill(iev) ;
+ } // end events loop
+ outputFile->Write() ;
+ outputFile->Close() ;
+}
+
 } // end namespace gen

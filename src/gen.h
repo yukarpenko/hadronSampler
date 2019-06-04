@@ -9,12 +9,21 @@ extern DatabasePDG2 *database ;
 extern TRandom3 *rnd ;
 extern Particle ***pList ; // particle arrays
 extern int *npart ;
-const int NPartBuf = 15000; // dimension of particle buffer for each event
+const int NPartBuf = 100000; // dimension of particle buffer for each event
+
+struct element {
+ double tau, x, y, eta ;
+ double u[4] ;
+ double dsigma[4] ;
+ double T, mub, muq, mus ;
+ double pi[10] ;
+ double Pi ;
+} ;
 
 // functions
-void load(char *filename, int N) ;
-double calcDFMax(int pindex, char *fileout) ;
-void loadDFMax(char *filename, int N) ;
+void init();
+void addElement(element elem) ;
 int generate() ;
+void writeEvents();
 }
 

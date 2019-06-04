@@ -70,7 +70,7 @@ using HSparams::rescatter ;
 extern DatabasePDG2 *database ;
 
 
-// here we involve UrQMD
+// here we only do resonance decays
 void urqmd(int iev)
 {
  ievcasc = iev ;
@@ -112,7 +112,10 @@ for(int iiter=0; iiter<3; iiter++){
  }
  
  } // decay iteration
- if(npart[iev]>NPartBuf){ cout<<"Error. Please increase gen::npartbuf\n"; exit(1);}
+ if(npart[iev]>NPartBuf){
+  cout<<"Error. Please increase gen::npartbuf\n";
+  exit(1);
+ }
 }
 
 } // end namespace gen
