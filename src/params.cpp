@@ -30,7 +30,7 @@ void readParams(char* filename)
   exit(1) ;
  }
  // setting default values
- NEVENTS = 1;
+ NEVENTS = 10;
  rescatter = 1;
  weakContribution = true;
  shear = false;

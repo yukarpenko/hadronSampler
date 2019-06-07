@@ -90,6 +90,7 @@ void init()
  ncut=0;
  dvMax=0. ;
  dsigmaMax=0. ;  // needed for the generation
+ surf.clear();
  pList = new Particle** [HSparams::NEVENTS] ;
  for(int i=0; i<HSparams::NEVENTS; i++){
    pList[i] = new Particle* [NPartBuf] ;
@@ -296,22 +297,6 @@ void acceptParticle(int ievent, ParticlePDG2 *ldef, double lx, double ly, double
   cout<<"Error. Please increase gen::npartbuf\n";
   exit(1);
  }
-}
-
-
-void writeEvents()
-{
- TFile *outputFile = new TFile("output.root", "RECREATE"); 
- outputFile->cd();
- MyTree *treeIni = new MyTree("treeini") ;
- MyTree *treeFin = new MyTree("treefin") ;
- for(int iev=0; iev<HSparams::NEVENTS; iev++){
- treeIni->fill(iev) ;
- gen::urqmd(iev) ;   // it only does resonance decays
- treeFin->fill(iev) ;
- } // end events loop
- outputFile->Write() ;
- outputFile->Close() ;
 }
 
 } // end namespace gen

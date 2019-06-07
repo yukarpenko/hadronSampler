@@ -11,6 +11,7 @@
 int ievcasc ; // event #
 
 using namespace std ;
+using gen::Particle;
 
 void cxxninit_(int *np)
 {

@@ -1,4 +1,6 @@
+namespace gen{
 class Particle ;
+}
 
 extern"C" {
  int geteposcode_(int *code);
@@ -11,7 +13,7 @@ extern"C" {
  void cxxfinal_(int* index, int* id, float* x, float* y, float* z, float* t, float* px, float* py, float* pz, float* E, float* mass, int* ncoll, int* lstcoll, int* istptl);
 }
 
-void resonanceDecay(Particle *in, int& nprod, Particle** &out) ;
+void resonanceDecay(gen::Particle *in, int& nprod, gen::Particle** &out) ;
 
 namespace gen{
 void urqmd(int ievent) ;

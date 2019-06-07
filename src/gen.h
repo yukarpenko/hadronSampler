@@ -1,8 +1,8 @@
 class TRandom3 ;
 class DatabasePDG2;
-class Particle ;
 
 namespace gen{
+class Particle ;
 //typedef std::vector<Particle*> ParticleList ; // TODO in far future
 // data
 extern DatabasePDG2 *database ;
@@ -24,6 +24,5 @@ struct element {
 void init();
 void addElement(element elem) ;
 int generate() ;
-void writeEvents();
 }
 
