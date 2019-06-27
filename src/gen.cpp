@@ -22,7 +22,11 @@
 #include "particle.h"
 #include "const.h"
 #include "tree.h"
-#include "../src/cll.h"   // to import index44()
+#ifndef JNOFLUID   // if NOT defined!
+ #include "../src/cll.h"   // to import index44()
+#else
+ #include "dummyFluid.h"
+#endif
 
 using namespace std ;
 
