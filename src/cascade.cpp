@@ -10,6 +10,8 @@
 
 int ievcasc ; // event #
 
+const int ST_STABLE_HADRON = 30;
+
 using namespace std ;
 using gen::Particle;
 
@@ -81,6 +83,7 @@ for(int iiter=0; iiter<3; iiter++){
 
  for(int ipart=0; ipart<npart[iev]; ipart++){
  Particle* p = pList[iev][ipart] ;
+ p->status = ST_STABLE_HADRON;
  if(p->def==0) { /*cout << "unknown particle: " << p->def << endl ;*/ continue ; }
  if(p->def->GetWidth()>0. && !isStable(p->def->GetPDG())){
   p->x = p->x  + p->px/p->e*(400. - p->t) ;
@@ -212,7 +215,7 @@ M1:  Double_t initialMass = BreitWigner(initialMass0,pDef->GetWidth(), random3);
   if(nSec == 1) {
     nprod = 1 ;
     out = new Particle* [1] ;
-    out[0] = new Particle(in->x, in->y, in->z, in->t, in->px, in->py, in->pz, E1, pDef, pDef->GetPDG()) ;
+    out[0] = new Particle(in->x, in->y, in->z, in->t, in->px, in->py, in->pz, E1, pDef, pDef->GetPDG(), ST_STABLE_HADRON) ;
     cout<<"Warning: 1-particle decay!, pid= "<<pDef->GetPDG()<<endl ;
     return;
     //store information about mother
@@ -238,8 +241,8 @@ M1:  Double_t initialMass = BreitWigner(initialMass0,pDef->GetWidth(), random3);
     p2mom.Boost(velocity);
     
     out = new Particle* [2] ;
-    out[0] = new Particle(in->x, in->y, in->z, in->t, p1mom.Px(), p1mom.Py(), p1mom.Pz(), p1mom.E(), daughter1, pDef->GetPDG()) ;
-    out[1] = new Particle(in->x, in->y, in->z, in->t, p2mom.Px(), p2mom.Py(), p2mom.Pz(), p2mom.E(), daughter2, pDef->GetPDG()) ;
+    out[0] = new Particle(in->x, in->y, in->z, in->t, p1mom.Px(), p1mom.Py(), p1mom.Pz(), p1mom.E(), daughter1, pDef->GetPDG(), ST_STABLE_HADRON) ;
+    out[1] = new Particle(in->x, in->y, in->z, in->t, p2mom.Px(), p2mom.Py(), p2mom.Pz(), p2mom.E(), daughter2, pDef->GetPDG(), ST_STABLE_HADRON) ;
 
     double delta = TMath::Sqrt(
     (parentMom.X()-p1mom.X()-p2mom.X())*(parentMom.X()-p1mom.X()-p2mom.X())+
@@ -392,9 +395,9 @@ M1:  Double_t initialMass = BreitWigner(initialMass0,pDef->GetWidth(), random3);
     }
 
     out = new Particle* [3] ;
-    out[0] = new Particle(in->x, in->y, in->z, in->t, mom1.Px(), mom1.Py(), mom1.Pz(), mom1.E(), daughter1, pDef->GetPDG()) ;
-    out[1] = new Particle(in->x, in->y, in->z, in->t, mom2.Px(), mom2.Py(), mom2.Pz(), mom2.E(), daughter2, pDef->GetPDG()) ;
-    out[2] = new Particle(in->x, in->y, in->z, in->t, mom3.Px(), mom3.Py(), mom3.Pz(), mom3.E(), daughter3, pDef->GetPDG()) ;
+    out[0] = new Particle(in->x, in->y, in->z, in->t, mom1.Px(), mom1.Py(), mom1.Pz(), mom1.E(), daughter1, pDef->GetPDG(), ST_STABLE_HADRON) ;
+    out[1] = new Particle(in->x, in->y, in->z, in->t, mom2.Px(), mom2.Py(), mom2.Pz(), mom2.E(), daughter2, pDef->GetPDG(), ST_STABLE_HADRON) ;
+    out[2] = new Particle(in->x, in->y, in->z, in->t, mom3.Px(), mom3.Py(), mom3.Pz(), mom3.E(), daughter3, pDef->GetPDG(), ST_STABLE_HADRON) ;
 
     return;
   }

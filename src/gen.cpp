@@ -33,6 +33,8 @@ using namespace std ;
 #define _USE_MATH_DEFINES
 const double C_Feq = (pow(0.5/M_PI/hbarC,3)) ;
 
+const int ST_PARTICLIZED_HADRON = 20;
+
 // ##########################################################
 // #  this version works with arbitrary T/mu distribution   #
 // #  on freezeout hypersurface (May'2012)                  #
@@ -291,7 +293,7 @@ void acceptParticle(int ievent, ParticlePDG2 *ldef, double lx, double ly, double
 {
  int& npart1 = npart[ievent] ;
  int lid = ldef->GetPDG() ;
- pList[ievent][npart1] = new Particle(lx,ly,lz,lt,lpx,lpy,lpz,lE, ldef, 0) ;
+ pList[ievent][npart1] = new Particle(lx,ly,lz,lt,lpx,lpy,lpz,lE, ldef, 0, ST_PARTICLIZED_HADRON) ;
  npart1++ ;
  if(std::isinf(lE) || std::isnan(lE)){
   cout << "acceptPart nan: known, coord="<<lx<<" "<<ly<<" "<<lz<<" "<<lt<<endl ;
