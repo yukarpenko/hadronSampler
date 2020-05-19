@@ -39,7 +39,7 @@ $(TARGET): $(UKWO) $(HYDROO)
 clean:
 		@rm -f $(ODIR)/*.o $(TARGET)
 
-$(ODIR)/%.o: src.visc/%.cpp src.visc/const.h
+$(ODIR)/%.o: src/%.cpp src/const.h
 		$(CXX) $(CXXFLAGS) -c $< -o $@
 
 $(ODIR)/%.o: ../UKW/%.f
