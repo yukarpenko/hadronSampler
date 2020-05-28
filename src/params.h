@@ -12,6 +12,6 @@ extern double dx, dy, deta ;
 extern double ecrit ;
 
 // ---- rooutines ----
-void readParams(char* filename) ;
+void readParams(const char* filename) ;
 void printParameters() ;
 }

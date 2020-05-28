@@ -21,7 +21,7 @@ double ecrit ;
 
 // ############ reading and processing the parameters
 
-void readParams(char* filename)
+void readParams(const char* filename)
 {
 	char parName [255], parValue [255] ;
 	ifstream fin(filename) ;
