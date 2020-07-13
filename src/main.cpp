@@ -27,6 +27,7 @@
 using namespace std ;
 int getNlines(char *filename) ;
 int readCommandLine(int argc, char** argv) ;
+int Nparticipants ;
 
 using HSparams::sSpectraDir ;
 using HSparams::sMultDir ;
@@ -94,9 +95,9 @@ if(bEventGeneration){ // ---- generate events
  gen::generate() ; // one call for NEVENTS
 
  for(int iev=0; iev<NEVENTS; iev++){
- treeIni->fill(iev) ;
+ treeIni->fill(iev, Nparticipants) ;
  gen::urqmd(iev) ;
- treeFin->fill(iev) ;
+ treeFin->fill(iev, Nparticipants) ;
  } // end events loop
  outputFile->Write() ;
  outputFile->Close() ;
@@ -127,6 +128,7 @@ int readCommandLine(int argc, char** argv)
 	  prefix = atoi(argv[2]) ;
 	  cout << "events mode, prefix = " << prefix << endl ;
 	  HSparams::readParams(argv[3]) ;
+          Nparticipants = atoi(argv[4]) ;
     }else if(strcmp(argv[1],"fmax")==0){
 	  if((int)argv[2][0]<58){
 		prefix = atoi(argv[2]) ;

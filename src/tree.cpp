@@ -25,6 +25,7 @@ MyTree::MyTree(char *name)
   Strg= new Short_t [gen::NPartBuf] ; // strangeness
 
   tree->Branch("npart",&nfill,"npart/I");
+  tree->Branch("Nparticipants",&np,"Nparticipants/I");
 //  treefin->Branch("nev",&nev,"nev/I");
   tree->Branch("x",&X[0],"x[npart]/F");
   tree->Branch("y",&Y[0],"y[npart]/F");
@@ -45,7 +46,7 @@ MyTree::MyTree(char *name)
 }
 
 
-void MyTree::fill(int iev)
+void MyTree::fill(int iev, int Nparticipants)
 {
   nfill = 0 ;
  for(int ipart=0; ipart<gen::npart[iev]; ipart++)
@@ -68,5 +69,7 @@ Chrg[nfill] = (Char_t)(gen::pList[iev][ipart]->def->GetElectricCharge()) ;
 Strg[nfill] = (Char_t)(gen::pList[iev][ipart]->def->GetStrangeness()) ;
    nfill++ ;
  }
+ np = Nparticipants ;
  tree->Fill() ;
 }
+

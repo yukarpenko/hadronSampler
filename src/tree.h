@@ -6,7 +6,8 @@ class MyTree{
  Int_t *Id, *MId, *LastColl, *NColl, *Origin ;
  Short_t *Chrg, *Bar, *Strg ;
  Int_t nfill ;
+ Int_t np ;
 public:
  MyTree(char *name) ;
- void fill(int iev) ;
+ void fill(int iev, int Nparticipants) ;
 } ;
