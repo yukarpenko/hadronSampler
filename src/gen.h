@@ -12,9 +12,7 @@ extern int *npart ;
 const int NPartBuf = 150000; // dimension of particle buffer for each event
 
 // functions
-void load(char *filename, int N) ;
-double calcDFMax(int pindex, char *fileout) ;
-void loadDFMax(char *filename, int N) ;
+void load(const char *filename, int N) ;
 int generate() ;
 }
 

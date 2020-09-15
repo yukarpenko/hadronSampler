@@ -25,15 +25,12 @@
 #include "params.h"
 
 using namespace std ;
-int getNlines(char *filename) ;
-int readCommandLine(int argc, char** argv) ;
+int getNlines(const char *filename) ;
+void readCommandLine(int argc, char** argv) ;
 int Nparticipants ;
+string surfaceInput, eventOutput;
 
-using HSparams::sSpectraDir ;
-using HSparams::sMultDir ;
-using HSparams::sSurface ;
 using HSparams::NEVENTS ;
-using HSparams::bEventGeneration ;
 
 int ranseed ;
 
@@ -48,17 +45,17 @@ extern "C"{
 
 int main(int argc, char **argv)
 {
-  // command-line parameters
-  int prefix = readCommandLine(argc, argv) ;
-  HSparams::printParameters() ;
-  time_t time0 ;
-  time(&time0) ;
-  ranseed = time0+prefix*16 ;
+ // command-line parameters
+ readCommandLine(argc, argv) ;
+ HSparams::printParameters() ;
+ time_t time0 ;
+ time(&time0) ;
 
-  TRandom3* random3 = new TRandom3();
-	random3->SetSeed(ranseed);
-  cout<<"Random seed = "<<ranseed<<endl ;
-  gen::rnd = random3 ;
+ TRandom3* random3 = new TRandom3();
+ random3->SetSeed(0);
+ cout<<"hadronSampler: random seed = "<<random3->GetSeed()<<endl ;
+ ranseed = random3->GetSeed();
+ gen::rnd = random3 ;
   
 //========= particle database init
 	DatabasePDG2 *database = new DatabasePDG2("Tb/ptl3.data","Tb/dky3.mar.data");
@@ -72,7 +69,7 @@ int main(int argc, char **argv)
   gen::database = database ;
   
 // ========== generator init
- gen::load(sSurface,getNlines(sSurface)) ;
+ gen::load(surfaceInput.c_str(),getNlines(surfaceInput.c_str())) ;
  //cout << "dfMax = " << gen::calcDFMax() << endl ;
 
  // ========== trees & files
@@ -80,14 +77,12 @@ int main(int argc, char **argv)
  time(&start);
 
 //============= main task
-if(bEventGeneration){ // ---- generate events
- char sbuffer [255] ;
- sprintf(sbuffer,"mkdir -p %s",sSpectraDir) ;
- system(sbuffer) ;
- sprintf(sbuffer,"%s/all.mult",sMultDir) ;
- //gen::loadDFMax(sbuffer,getNlines(sbuffer)) ;
- sprintf(sbuffer, "%s/%i.root",sSpectraDir,prefix) ;
- TFile *outputFile = new TFile(sbuffer, "RECREATE"); 
+ string eventOutputDir = eventOutput;
+ eventOutputDir.erase(eventOutputDir.rfind("/"));
+ char sbuffer [250];
+ sprintf(sbuffer,"mkdir -p %s",eventOutputDir) ;
+ system(sbuffer);
+ TFile *outputFile = new TFile(eventOutput.c_str(), "RECREATE"); 
  outputFile->cd();
  MyTree *treeIni = new MyTree("treeini") ;
  MyTree *treeFin = new MyTree("treefin") ;
@@ -101,15 +96,6 @@ if(bEventGeneration){ // ---- generate events
  } // end events loop
  outputFile->Write() ;
  outputFile->Close() ;
-}else{ // ---- calculate fMax: obsolete
- cout<<"fMax mode is obsolete. Exiting\n" ;
- return 0 ;
-char sbuffer [255] ;
- sprintf(sbuffer,"mkdir -p %s",sMultDir) ;
- system(sbuffer) ;
- sprintf(sbuffer, "%s/%i.mult", sMultDir, prefix) ; // here prefix=id of particle
-// gen::calcDFMax(prefix, sbuffer) ;
-}
 
  cout << "event generation done\n" ;
  time(&end); float diff2 = difftime(end, start);
@@ -118,31 +104,28 @@ char sbuffer [255] ;
 }
 
 
-int readCommandLine(int argc, char** argv)
+void readCommandLine(int argc, char** argv)
 {
-	if(argc==1){cout << "NO PARAMETERS, exit" << endl ; exit(1) ;}
-	bEventGeneration = 0 ;
-	int prefix = 0 ;
-	if(strcmp(argv[1],"events")==0){
-	  bEventGeneration = 1 ;
-	  prefix = atoi(argv[2]) ;
-	  cout << "events mode, prefix = " << prefix << endl ;
-	  HSparams::readParams(argv[3]) ;
-          Nparticipants = atoi(argv[4]) ;
-    }else if(strcmp(argv[1],"fmax")==0){
-	  if((int)argv[2][0]<58){
-		prefix = atoi(argv[2]) ;
-		cout << "fmax mode, prefix = " << prefix << endl ;
-		HSparams::readParams(argv[3]) ;
-	  }else
-	  HSparams::readParams(argv[2]) ;
-	}else{cout << "unknown command-line switch: " << argv[1] << endl ; exit(1) ;}
-	return prefix ;
+  if(argc==1){
+  cout << "no CL params - exiting.\n"; exit(1) ;
+ }
+ else{
+  for(int iarg=1; iarg<argc-1; iarg++){
+   if(strcmp(argv[iarg],"-Npart")==0) Nparticipants = atoi(argv[iarg+1]);
+   if(strcmp(argv[iarg],"-params")==0) HSparams::readParams(argv[iarg+1]);
+   if(strcmp(argv[iarg],"-surface")==0) surfaceInput = argv[iarg+1];
+   if(strcmp(argv[iarg],"-output")==0) eventOutput = argv[iarg+1];
+  }
+  cout << "hadronSampler: command line parameters are:\n";
+  cout << "Npart  " << Nparticipants << endl;
+  cout << "hydro surface:  " << surfaceInput << endl;
+  cout << "ROOT output:  " << eventOutput << endl;
+ }
 }
 
 
 // auxiliary function to get the number of lines
-int getNlines(char *filename)
+int getNlines(const char *filename)
 {
   ifstream fin(filename) ;
   if(!fin) {cout<<"getNlines: cannot open file: "<<filename<<endl; exit(1) ; }

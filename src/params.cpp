@@ -10,8 +10,6 @@ using namespace std ;
 
 namespace HSparams{
 
-char sSurface [255], sSpectraDir [255], sMultDir [255] ;
-bool bEventGeneration ;
 bool weakContribution ;
 bool rescatter ;
 bool shear ;
@@ -33,14 +31,7 @@ void readParams(char* filename)
 	 getline(fin, line) ;
 	 istringstream sline (line) ;
 	 sline >> parName >> parValue ;
-	 if     (strcmp(parName,"surface")==0) strcpy(sSurface, parValue) ;
-	 else if(strcmp(parName,"spectra_dir")==0) strcpy(sSpectraDir, parValue) ;
-	 else if(strcmp(parName,"fmax_dir")==0) strcpy(sMultDir, parValue) ;
-//	 else if(strcmp(parName,"T_ch")==0) Temp = atof(parValue) ;
-//	 else if(strcmp(parName,"mu_b")==0) mu_b = atof(parValue) ;
-//	 else if(strcmp(parName,"mu_q")==0) mu_q = atof(parValue) ;
-//	 else if(strcmp(parName,"mu_s")==0) mu_s = atof(parValue) ;
-	 else if(strcmp(parName,"Nbins")==0) NBINS = atoi(parValue) ;
+	 if(strcmp(parName,"Nbins")==0) NBINS = atoi(parValue) ;
 	 else if(strcmp(parName,"q_max")==0) QMAX = atof(parValue) ;
 	 else if(strcmp(parName,"number_of_events")==0) NEVENTS = atoi(parValue) ;
 	 else if(strcmp(parName,"rescatter")==0) rescatter = atoi(parValue) ;
@@ -56,14 +47,6 @@ void readParams(char* filename)
 void printParameters()
 {
   cout << "====== parameters ======\n" ;
-  cout << "surface = " << sSurface << endl ;
-  cout << "spectraDir = " << sSpectraDir << endl ;
-  cout << "multiplicityDir = " << sMultDir << endl ;
-//  cout << "T_ch = " << Temp << endl ;
-//  cout << "mu_b = " << mu_b << endl ;
-//  cout << "mu_q = " << mu_q << endl ;
-//  cout << "mu_s = " << mu_s << endl ;
-  cout << "eventGeneration = " << bEventGeneration << endl ;
   cout << "numberOfEvents = " << NEVENTS << endl ;
   cout << "isRescatter = " << rescatter << endl ;
   cout << "weakContribution = " << weakContribution << endl ;
