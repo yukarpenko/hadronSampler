@@ -80,7 +80,7 @@ int main(int argc, char **argv)
  string eventOutputDir = eventOutput;
  eventOutputDir.erase(eventOutputDir.rfind("/"));
  char sbuffer [250];
- sprintf(sbuffer,"mkdir -p %s",eventOutputDir) ;
+ sprintf(sbuffer,"mkdir -p %s",eventOutputDir.c_str()) ;
  system(sbuffer);
  TFile *outputFile = new TFile(eventOutput.c_str(), "RECREATE"); 
  outputFile->cd();
