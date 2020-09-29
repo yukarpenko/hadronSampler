@@ -111,7 +111,10 @@ void readCommandLine(int argc, char** argv)
  }
  else{
   for(int iarg=1; iarg<argc-1; iarg++){
-   if(strcmp(argv[iarg],"-Npart")==0) Nparticipants = atoi(argv[iarg+1]);
+   if(strcmp(argv[iarg],"-Npart")==0) {
+     float Nparticipants_float = atof(argv[iarg+1]);
+     Nparticipants = (int)round(Nparticipants_float);
+   }
    if(strcmp(argv[iarg],"-params")==0) HSparams::readParams(argv[iarg+1]);
    if(strcmp(argv[iarg],"-surface")==0) surfaceInput = argv[iarg+1];
    if(strcmp(argv[iarg],"-output")==0) eventOutput = argv[iarg+1];
